@@ -700,9 +700,8 @@ BT_CheckType BT_StopCommunication(void)
 				break;
 				
 				default: break;
-        }
-        break;
-	}
+			}
+		}
 		break;
 	
         case BT_STOP_COMM_START_RECEPTION:
