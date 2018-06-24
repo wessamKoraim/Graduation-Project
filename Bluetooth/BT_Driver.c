@@ -78,10 +78,7 @@ BT_CheckType BT_Configure(void)
                 State = CHECK_RECEPTION_DONE;
                 UART_StartSilentReception(ReceivedArray,3,ConfigPtr->BT_ChannelID);
             }
-            else
-            {
-
-            }
+            else{/*MISRA*/};
 
         }
         break;
@@ -169,15 +166,7 @@ BT_CheckType BT_Configure(void)
             State = CHECK_TRANSMISSION_DONE;
         }
         break;
-/*
-        case DISABLE_REMOTE_CONFIGURATION:
-        {
-            UART_StartSilentTransmission("ST,0\r",5,ConfigPtr->BT_ChannelID);
-            OldState = State;
-            State = CHECK_TRANSMISSION_DONE;
-        }
-        break;
-				*/
+
         case EXIT_COMMAND_MODE:
         {
 
@@ -688,10 +677,7 @@ BT_CheckType BT_StopCommunication(void)
 					{
 						DoneFlag = 1;
 					}
-					else
-                    {
-                        DoneFlag = 2;
-                    }
+
 					State = BT_STOP_COMM_EXIT_CMD;
 				}
 				break;
@@ -704,11 +690,6 @@ BT_CheckType BT_StopCommunication(void)
 						if(DoneFlag == 1)
 						{
 							RetVal = BT_OK;
-							DoneFlag = 0;
-						}
-						else if(DoneFlag == 2)
-						{
-							RetVal = BT_NOK;
 							DoneFlag = 0;
 						}
 						else{/*MISRA*/}
