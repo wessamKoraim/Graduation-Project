@@ -4,10 +4,31 @@
 NVM_ConfigType NVM_ConfigParam [NO_OF_NVM_USED] = 
 {
     {
-        0xA0,//Slave Address
-        4, //Numer of Bytes
-        0x30, //Location Address to Read Or Write
-        NVM_WriteDone,//Write call back function
-        NVM_ReadDone //Read call back function
+        /*EEPROM Slave Address*/
+        0xA0,
+        /*Numer of Bytes*/
+        4,
+        /*Location Address to Read Or Write*/
+        0x30,
+        /*Write Call Back Function*/
+        NVM_WriteDone,
+        /*Read Call Back Function*/
+        NVM_ReadDone,
+        /*Error Call Back Function*/
+        NVM_Error
+    },
+	{
+        /*EEPROM Slave Address*/
+        0xA0,
+        /*Numer of Bytes*/
+        4,
+        /*Location Address to Read Or Write*/
+        0x00,
+        /*Write Call Back Function*/
+        NVM_WriteDone,
+        /*Read Call Back Function*/
+        NVM_ReadDone,
+        /*Error Call Back Function*/
+        NVM_Error
     }
 };
