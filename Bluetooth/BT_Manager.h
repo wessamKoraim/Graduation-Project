@@ -16,7 +16,8 @@ typedef enum
     BT_TRANSMIT,
     BT_RECEIVE,
 	BT_GET_CONNECTION_STATUS,
-    BT_KILL_CONNECTION
+    BT_KILL_CONNECTION,
+    BT_ERROR
 }BT_ManagerState;
 
 #endif 

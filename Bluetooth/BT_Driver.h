@@ -8,17 +8,17 @@
 #include "UART.h"
 #include "BT_Config.h"
 
-#define NUMBER_OF_COMMANDS      4U
-#define LENGTH_OF_BT_RESPONSE   3U
+#define NUMBER_OF_COMMANDS      (4U)
+#define LENGTH_OF_BT_RESPONSE   (3U)
 
 typedef void (*BT_CallBackPtrType)(void);
 /*
  *  This is a new type which is a pointer to function which returns void
  *  and has a uint8_t argument, which holds the connection status of the module
- * 
  */
 
 typedef void (*BT_CS_CallBackPtrType)(uint8_t);
+typedef void (*BT_ErrorCallBackPtrType)(uint8_t);
 
 typedef enum
 {
@@ -31,8 +31,8 @@ typedef enum
     SET_NO_AUTHENTICATION ,
 //    DISABLE_REMOTE_CONFIGURATION ,
     EXIT_COMMAND_MODE,
-    REBOOT ,
-    CHECK_RECEIVED_DATA 
+    REBOOT,
+    CHECK_RECEIVED_DATA ,
 }BT_State;
 
 typedef enum
@@ -85,7 +85,9 @@ typedef enum
     CHANNEL_ID_0 = 0,
     CHANNEL_ID_1 = 1,
     CHANNEL_ID_2 = 2,
-    CHANNEL_ID_3 = 3
+    CHANNEL_ID_3 = 3,
+    CHANNEL_ID_4 = 4,
+    CHANNEL_ID_5 = 5
 }BT_UART_ChannelID;
 
 typedef struct
@@ -96,6 +98,7 @@ typedef struct
     BT_CallBackPtrType BT_ReceptionCallBackPtr;
     BT_CallBackPtrType BT_KillConnectionStatusCallBackPtr;
 	BT_CS_CallBackPtrType BT_ConnectionStatusCallBackPtr;
+    BT_ErrorCallBackPtrType BT_ErrorCallBackPtr;
 }BT_ConfigType;
 
 extern const BT_ConfigType BT_ConfigParam;

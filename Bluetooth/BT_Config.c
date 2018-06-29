@@ -1,16 +1,17 @@
 #include "BT_Driver.h"
 
-//void BT_TxDone(void);
-//void BT_RxDone(void);
-//void BT_ConnectionKilled(void);
-//void BT_CheckConnection(uint8_t);
+void BT_TransmissionnDoneCallBack(void);
+void BT_ReceptionDoneCallBack(void);
+void BT_DisconnectedCallBack(void);
+void BT_StatusCallBack(uint8_t);
+void BT_ErrorCallBack(uint8_t);
 
 const BT_ConfigType BT_ConfigParam = 
 {
     /*
         Enter here, between double quotes, the name of the Bluetooth module
     */
-    "doo7a",
+    "APP",
     /*
         Enter here the index of the structure inside the array of structures for the UART configuration file
     */
@@ -18,13 +19,15 @@ const BT_ConfigType BT_ConfigParam =
     /*
         Enter here the name of the function to be called after transmission is done
     */
-    0,
+    BT_TransmissionnDoneCallBack,
     /*
         Enter here the name of the function to be called after reception is done
     */
-    0,
+    BT_ReceptionDoneCallBack,
 
-    0,
+    BT_DisconnectedCallBack,
 	
-	0
+	BT_StatusCallBack,
+
+    BT_ErrorCallBack
 };
