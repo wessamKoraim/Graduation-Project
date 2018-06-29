@@ -1,8 +1,6 @@
 #include "BT_Driver.h"
 #include "BT_Config.h"
 
-
-
 const BT_ConfigType BT_ConfigParam = 
 {
     /*
@@ -16,7 +14,7 @@ const BT_ConfigType BT_ConfigParam =
     /*
         Enter here the name of the function to be called after transmission is done
     */
-    BT_ReceptionDoneCallBack,
+    BT_TransmissionnDoneCallBack,
     /*
         Enter here the name of the function to be called after reception is done
     */
@@ -26,5 +24,5 @@ const BT_ConfigType BT_ConfigParam =
 	
 	BT_StatusCallBack,
 
-
+    BT_ErrorCallBack
 };

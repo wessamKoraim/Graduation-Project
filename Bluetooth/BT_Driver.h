@@ -86,7 +86,9 @@ typedef enum
     CHANNEL_ID_0 = 0,
     CHANNEL_ID_1 = 1,
     CHANNEL_ID_2 = 2,
-    CHANNEL_ID_3 = 3
+    CHANNEL_ID_3 = 3,
+    CHANNEL_ID_4 = 4,
+    CHANNEL_ID_5 = 5
 }BT_UART_ChannelID;
 
 typedef struct
@@ -106,7 +108,7 @@ BT_CheckType BT_GetData(uint8_t* DataReceived,uint8_t NoOfBytes);
 BT_CheckType BT_SendData(uint8_t* DataSent, uint8_t NoOfBytes);
 BT_CheckType BT_GetConnectionStatus(void);
 BT_CheckType BT_StopCommunication(void);
-void BT_ChangeBaudRate(void);
+BT_CheckType BT_ChangeBaudRate(void);
 
 static BT_Response MemoryCompare(unsigned char* AT_Command , uint8_t Length);
 BT_CheckType BT_Configure(void);

@@ -32,6 +32,14 @@ void BT_Init(void)
     ReceptionDone     = 0;
     BT_InitFlag       = 0;
 
+    while(BT_Configure() != BT_OK)
+    {
+        UART_ManageOngoingOperation(ConfigPtr->BT_ChannelID);
+    }
+    while(BT_ChangeBaudRate() != BT_OK)
+    {
+        UART_ManageOngoingOperation(ConfigPtr->BT_ChannelID);
+    }
     if(sizeof(ConfigPtr->BT_Name) <= 25)
     {
         BT_InitFlag      = 1;

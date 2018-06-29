@@ -4,8 +4,8 @@
 *        Date: 18/2/2018
 *        Description:
 *                        This file contains:
-*                        - Base Addresses of The UART peripherals
-*                        - Implementation of functions used to access UART registers
+*                        - macros to access the UART register
+*                        - prototypes of functions used to access UART register
 *        Microcontroller: STM32F407VG
 ***************************************************************************************/
 #include <stdint.h>
@@ -13,10 +13,7 @@
 #include "UART.h"
 #include "GPIO.h"
 #include "STM32F4_MemMap.h"
-#if(UART_USE_INT_TO_HANDLE == 1)
 #include "stm32f407xx.h"
-#endif
-
 typedef volatile uint32_t* const UART_RegAddType; // typedef for the uart register addreses which are pointer to 32 bits 
 
 /*----------------------------------------------------------------
@@ -51,20 +48,17 @@ static const uint32_t UARTsBaseAddressLut[UART_MAX_NUM] =
         UART_1_BASE,
         UART_6_BASE
 };
-
-#if(UART_USE_INT_TO_HANDLE == 1)
-// Array of type IRQn_Type to save the IRQ number of UART modules to use them to enable and disable UART Interrupt
+/*
 static const IRQn_Type UART_IRQNumber[UART_MAX_NUM] = 
 {
-	USART2_IRQn,
-	USART3_IRQn,
-	UART4_IRQn,
-	UART5_IRQn,
-	USART1_IRQn,
-	USART6_IRQn
+        USART2_IRQn,
+        USART3_IRQn,
+        UART4_IRQn,
+        UART5_IRQn,
+        USART1_IRQn,
+        USART6_IRQn
 };
-#endif
-
+*/
 /*------------------------------------------------------------
 ******             UARTs Registers Offset               ******
 ------------------------------------------------------------*/
@@ -92,7 +86,7 @@ static const IRQn_Type UART_IRQNumber[UART_MAX_NUM] =
 // calculate the address of each register and cast it to the Typedef data type (UART_RegAddType)
 // then dereference that address to be ready to write in the required register.
 // UART_ID is the index of the required UART periferal in UARTsBaseAddressLut -
-// to get the base address of the required Peripheral. 
+// to get the base address of the required Periferal. 
 #define USART_SR(UART_ID)        *((UART_RegAddType)(UARTsBaseAddressLut[UART_ID] + USART_SR_OFFSET))
 #define USART_DR(UART_ID)        *((UART_RegAddType)(UARTsBaseAddressLut[UART_ID] + USART_DR_OFFSET))
 #define USART_BRR(UART_ID)        *((UART_RegAddType)(UARTsBaseAddressLut[UART_ID] + USART_BRR_OFFSET))
@@ -110,16 +104,20 @@ static const IRQn_Type UART_IRQNumber[UART_MAX_NUM] =
 #define UART_STATE_RX_INPROGRESS 0x04
 /*----------------------------------*/
 
-// Array to hold the alternative function value of each UART module
-static const uint32_t UartChannelsAlternFun[UART_MAX_NUM]
+// structure to save the Alternative function of each Tx and Rx pin
+typedef struct
+{
+        uint8_t TxAltFunction;
+        uint8_t RxAltFunction;
+}GpioAlternFunc;
+static const GpioAlternFunc UartChannelsAlternFun[UART_MAX_NUM]
 = {
-   AF_USART2, // Alternative function of UART2 is 0x07 for both Tx and Rx
-   AF_USART3, // Alternative function of UART3 is 0x07 for both Tx and Rx
-   AF_USART4, // Alternative function of UART4 is 0x08 for both Tx and Rx
-   AF_USART5, // Alternative function of UART5 is 0x08 for both Tx and Rx
-   AF_USART1, // Alternative function of UART1 is 0x07 for both Tx and Rx
-   AF_USART6 // Alternative function of UART6 is 0x08 for both Tx and Rx
-  };
+   {0x07,0x07}, // Alternative function of UART2 is 0x07 for both Tx and Rx
+   {0x07,0x07}, // Alternative function of UART3 is 0x07 for both Tx and Rx
+   {0x08,0x08}, // Alternative function of UART4 is 0x08 for both Tx and Rx
+   {0x08,0x08}, // Alternative function of UART5 is 0x08 for both Tx and Rx
+   {0x07,0x07}, // Alternative function of UART1 is 0x07 for both Tx and Rx
+   {0x08,0x08}}; // Alternative function of UART6 is 0x08 for both Tx and Rx
 
 // Array to save the states of all UARTs
 uint8_t UartDriverState[UART_MAX_NUM] = {0};
@@ -138,7 +136,9 @@ uint8_t* UartRxBuffPtr[UART_MAX_NUM];
 // Array of pointers to function to save the RxDone Callback function address
 UART_CallBackPtrType RxCallback[UART_MAX_NUM];
 // Array of pointers to function to save the TxDone Callback function address
-UART_CallBackPtrType TxCallback[UART_MAX_NUM]; 
+UART_CallBackPtrType TxCallback[UART_MAX_NUM];
+
+
 
 /*--------------------------------------
 ****        Helper functions        ****
@@ -173,7 +173,8 @@ UART_ChkType UART_Init(void)
                    (CfgPtr->StopBits <=STOP_TWO))
                 {
                         //Set the alternative function of Tx and Rx pins
-                        GPIO_SetAlternFuntion(CfgPtr->GPIO_PortID,UartChannelsAlternFun[CfgPtr->UartPerifID]);
+                        GPIO_SetAlternFuntion(CfgPtr->TxPortID,UartChannelsAlternFun[CfgPtr->UartPerifID].TxAltFunction);
+                        GPIO_SetAlternFuntion(CfgPtr->RxPortID,UartChannelsAlternFun[CfgPtr->UartPerifID].RxAltFunction);
 
                         // enable clock gating
                         // check the used UART on APB1 Bus or APB2 Bus
@@ -218,9 +219,8 @@ UART_ChkType UART_Init(void)
 
                         // enable UART
                         USART_CR1(CfgPtr->UartPerifID) |= (1 << UE);
-
-                        // Remove the TC flag to avoid entering the interrupt with the peripheral enable in case of using interrupt
-                        USART_SR(CfgPtr->UartPerifID) &=~ (1 << TC);
+                                                                                                
+                                                                                                USART_SR(CfgPtr->UartPerifID) &=~ (1 << TC);
 
                         /*Change the UART State*/
                         UartDriverState[CfgPtr->UartPerifID] |= UART_STATE_INIT;
@@ -261,13 +261,12 @@ UART_ChkType UART_StartSilentTransmission (uint8_t* TxBuffPtr,
                 /*Check if the channel Ready to start transmission*/
                 if((UartDriverState[CfgPtr->UartPerifID] & UART_STATE_INIT) == UART_STATE_INIT)
                 {
-                		#if(UART_USE_INT_TO_HANDLE == 1)
+                        #if(UART_USE_INT_TO_HANDLE == 1)
                         // USART_CR1 bit fields         Bit Number
                         //      RXNEIE                      5
                         //      TCIE                        6
                         //      TXEIE                       7
                         USART_CR1(CfgPtr->UartPerifID) |= 0x40;
-                        // Enable the global UART interrupt enable using NVIC
                         NVIC_EnableIRQ(UART_IRQNumber[CfgPtr->UartPerifID]);
                         #endif
                         // enable transmitter 
@@ -284,8 +283,6 @@ UART_ChkType UART_StartSilentTransmission (uint8_t* TxBuffPtr,
 
                         // initialize Tx counter to zero
                         UartTxCount[CfgPtr->UartPerifID] = 0;
-
-                        // Transmit the first character
                         USART_DR(CfgPtr->UartPerifID) = *(UartTxBuffPtr[CfgPtr->UartPerifID] + UartTxCount[CfgPtr->UartPerifID]);
 
                         // return UART Ok
@@ -396,11 +393,9 @@ UART_ChkType UART_StartSilentReception(uint8_t* RxBuffPtr,
                 {
                         // enable receiver
                         USART_CR1(CfgPtr->UartPerifID) |= (1 << RE);
-
-                        // Enable the global UART Interrupt enable in case of using interrupt
                         #if(UART_USE_INT_TO_HANDLE == 1)
-						NVIC_EnableIRQ(UART_IRQNumber[CfgPtr->UartPerifID]);
-						#endif
+                        NVIC_EnableIRQ(UART_IRQNumber[CfgPtr->UartPerifID]);
+                        #endif
 
                         // save the pointer RxBuffPtr where store the received data
                         UartRxBuffPtr[CfgPtr->UartPerifID] = RxBuffPtr;
@@ -552,10 +547,7 @@ static void RxManage(uint8_t ChannelId)
             {
                 // disable receiver
                 USART_CR1(CfgPtr->UartPerifID) &=~ (1 << RE);
-
-                // Execute the call back function which indicates finishing the reception
-                RxCallback[CfgPtr->UartPerifID]();
-
+                                                        RxCallback[CfgPtr->UartPerifID]();
                 // change the state of UART
                 UartDriverState[CfgPtr->UartPerifID] &=~ (UART_STATE_RX_INPROGRESS);
             }
@@ -580,9 +572,8 @@ static void TxManage(uint8_t ChannelId)
                 // check the TXE flag which is set when the data register is empty and ready to receive new byte
                 if ((USART_SR(CfgPtr->UartPerifID) >> TXE) & ((uint32_t)1))
                 { 
-                		// increment counter to send the next character
+                        // increment counter to send the next character
                         UartTxCount[CfgPtr->UartPerifID]++;
-
                         // check Tx Done or not
                         if(UartTxCount[CfgPtr->UartPerifID] < UartTxLength[CfgPtr->UartPerifID])
                         {
@@ -594,10 +585,10 @@ static void TxManage(uint8_t ChannelId)
                                 while (!(((USART_SR((CfgPtr->UartPerifID))) >> TC) & ((uint32_t)1)));
                                 // disable transmitter 
                                 USART_CR1(CfgPtr->UartPerifID) &=~ (1 << TE);
-                                // Execute the call back function which indicates finishing the transmision
-                                TxCallback[CfgPtr->UartPerifID]();
+                                                                                                                TxCallback[CfgPtr->UartPerifID]();
                                 // change the state of UART
                                 UartDriverState[CfgPtr->UartPerifID] &=~ (UART_STATE_TX_INPROGRESS);
+                                                                                                             
                         }         
                 }
                 else{;/*MISRA*/}
@@ -614,32 +605,28 @@ static void TxManage(uint8_t ChannelId)
 #if (UART_USE_INT_TO_HANDLE == 1)
 static void IntManage(UART_PerifID UARTx)
 {
-	// Check the state of the UART
-	// in case of transmittion
-	if (((UartDriverState[UARTx]) & UART_STATE_TX_INPROGRESS) == UART_STATE_TX_INPROGRESS)
+        if (((UartDriverState[UARTx]) & UART_STATE_TX_INPROGRESS) == UART_STATE_TX_INPROGRESS)
     {
         // check the TXE flag which is set when the data register is empty and ready to receive new byte
         if ((USART_SR(UARTx) >> TXE) & ((uint32_t)1))
         {
-        	// increment counter to send the next character
-            UartTxCount[UARTx]++;
+                                        // increment counter to send the next character
+                UartTxCount[UARTx]++;
             // check Tx Done or not
             if(UartTxCount[UARTx] < UartTxLength[UARTx])
             {
                 // send the next character
-                USART_DR(UARTx) = *(UartTxBuffPtr[UARTx] + UartTxCount[UARTx]);
+                USART_DR(UARTx) = *(UartTxBuffPtr[UARTx] + UartTxCount[UARTx]);  
             }
             else 
             {
                 if ((USART_SR(UARTx) >> TC) & ((uint32_t)1))
                 {
-                	// Disable the local interrupt source
                     // USART_CR1 bit fields         Bit Number
                     //      RXNEIE                      5
                     //      TCIE                        6
                     //      TXEIE                       7
                     USART_CR1(UARTx) &=~ 0xC0;
-                    // disable the global UART Interrupt
                     NVIC_DisableIRQ(UART_IRQNumber[UARTx]);
                     // disable transmitter 
                     USART_CR1(UARTx) &=~ (1 << TE);
@@ -647,15 +634,13 @@ static void IntManage(UART_PerifID UARTx)
                     UartDriverState[UARTx] &=~ (UART_STATE_TX_INPROGRESS);
                     // execute the call back function
                     TxCallback[UARTx]();
-                    //Clear the TC flag
-                    USART_SR(UARTx) &=~ (1 << TC);
+                                        USART_SR(UARTx) &=~ (1 << TC);
                 }
             }
         }
-    }
+                        }
 
-    // in case of receiving
-    if (((UartDriverState[UARTx]) & UART_STATE_RX_INPROGRESS) == UART_STATE_RX_INPROGRESS)
+        if (((UartDriverState[UARTx]) & UART_STATE_RX_INPROGRESS) == UART_STATE_RX_INPROGRESS)
     {
         if ((USART_SR(UARTx) >> RXNE) & ((uint32_t)1))
         {
@@ -671,18 +656,18 @@ static void IntManage(UART_PerifID UARTx)
 
                 if (UartRxCount[UARTx] == UartRxLength[UARTx])
                 {
-                	// disable receiver
-                	USART_CR1(UARTx) &=~ (1 << RE);
-                	// Disable the Interrupt
-                	NVIC_DisableIRQ(UART_IRQNumber[UARTx]);
+                        // disable receiver
+                        USART_CR1(UARTx) &=~ (1 << RE);
+                    NVIC_DisableIRQ(UART_IRQNumber[UARTx]);
                     // change the state of UART
-                	UartDriverState[UARTx] &=~ (UART_STATE_RX_INPROGRESS);
-                	// execute the call back function
-                	RxCallback[UARTx]();
+                        UartDriverState[UARTx] &=~ (UART_STATE_RX_INPROGRESS);
+                        // execute the call back function
+                        RxCallback[UARTx]();
+                                                                        
                 }
             }        
         }
-    }
+                        }
 }
 
 
@@ -691,6 +676,7 @@ static void IntManage(UART_PerifID UARTx)
 void USART1_IRQHandler (void)
 {
         IntManage(UART_1);
+        
 }
 
 // interrupt service routine of UART2 
@@ -723,4 +709,3 @@ void USART6_IRQHandler (void)
         IntManage(UART_6);
 }
 #endif
-
