@@ -1,10 +1,7 @@
 #include "BT_Driver.h"
+#include "BT_Config.h"
 
-void BT_TransmissionnDoneCallBack(void);
-void BT_ReceptionDoneCallBack(void);
-void BT_DisconnectedCallBack(void);
-void BT_StatusCallBack(uint8_t);
-void BT_ErrorCallBack(uint8_t);
+
 
 const BT_ConfigType BT_ConfigParam = 
 {
@@ -19,7 +16,7 @@ const BT_ConfigType BT_ConfigParam =
     /*
         Enter here the name of the function to be called after transmission is done
     */
-    BT_TransmissionnDoneCallBack,
+    BT_ReceptionDoneCallBack,
     /*
         Enter here the name of the function to be called after reception is done
     */
@@ -29,5 +26,5 @@ const BT_ConfigType BT_ConfigParam =
 	
 	BT_StatusCallBack,
 
-    BT_ErrorCallBack
+
 };

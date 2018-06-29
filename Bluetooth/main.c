@@ -16,6 +16,7 @@ int main (void)
 	uint8_t DataReceived[4] = {'\0','\0','\0','\0'};
 	uint8_t x = 0;
 	
+	
 	while(BT_Configure()!=BT_OK)
 	{
 		UART_ManageOngoingOperation(0);

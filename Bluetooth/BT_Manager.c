@@ -18,13 +18,10 @@
  *                  -BT_StartSendingData
  *                  -BT_StartReceivingData
  *					-BT_ConnectionStatus
- *                  -BT_KillConnection
  */
 
 #include "BT_Manager.h"
 
-#define BT_TIME_OUT (1000U)
-#define BT_ERROR_ID (0U)
 
 /*
  ******************************************************************************
@@ -35,15 +32,14 @@
  *                                                                            *
  ******************************************************************************
  */
-static uint8_t*     TransmittedDataPtr;
-static uint8_t*     ReceivedDataPtr;
-static uint8_t      TransmittedDataCount;
-static uint8_t      ReceivedDataCount;
-static uint8_t      StartTransmissionFlag;
-static uint8_t      StartReceptionFlag;
-static uint8_t      KillConnectionStatusFlag;
-static uint8_t	    GetConnectionStatusFlag;
-static uint64_t     BT_TimeOut;
+static uint8_t*    TransmittedDataPtr;
+static uint8_t*    ReceivedDataPtr;
+static uint8_t  TransmittedDataCount;
+static uint8_t  ReceivedDataCount;
+static uint8_t  StartTransmissionFlag;
+static uint8_t  StartReceptionFlag;
+static uint8_t  KillConnectionStatusFlag;
+static uint8_t	GetConnectionStatusFlag;
 
 
 /*
@@ -59,13 +55,12 @@ static uint64_t     BT_TimeOut;
  */
 void BT_Manager(void)
 {
-    static BT_ManagerState ManagerState = BT_INIT;
+    static BT_ManagerState ManagerState = BT_IDLE;
     BT_CheckType ConfigRetVal;
     BT_CheckType SendDataRetVal;
     BT_CheckType GetDataRetVal;
 	BT_CheckType ConnectionStatusRetVal;
     BT_CheckType KillConnectionRetVal;
-    static uint64_t ErrorCounter = 0;
 	const BT_ConfigType* ConfigPtr = &BT_ConfigParam;
     switch(ManagerState)
     {
@@ -90,7 +85,6 @@ void BT_Manager(void)
             if(ConfigRetVal == BT_OK)
             {
                 ManagerState = BT_IDLE;
-				
             }
             else
             {
@@ -126,124 +120,81 @@ void BT_Manager(void)
 
         case BT_TRANSMIT:
         {
-            if(ErrorCounter > BT_TimeOut)
+            SendDataRetVal = BT_SendData(TransmittedDataPtr, TransmittedDataCount);
+
+            if(SendDataRetVal == BT_OK)
             {
-                ManagerState = BT_ERROR;
+                ManagerState = BT_IDLE;
+                StartTransmissionFlag = 0;
+				(*(ConfigPtr->BT_TransmissionCallBackPtr))();
             }
             else
             {
-                SendDataRetVal = BT_SendData(TransmittedDataPtr, TransmittedDataCount);
-
-                if(SendDataRetVal == BT_OK)
-                {
-                    ManagerState = BT_IDLE;
-                    StartTransmissionFlag = 0;
-                    (*(ConfigPtr->BT_TransmissionCallBackPtr))();
-                }
-                else
-                {
-                    ManagerState = BT_TRANSMIT;
-                    ErrorCounter++;
-                }
+                ManagerState = BT_TRANSMIT;
             }
         }
         break;
 
         case BT_RECEIVE:
         {
-            if(ErrorCounter > BT_TimeOut)
+            GetDataRetVal = BT_GetData(ReceivedDataPtr, ReceivedDataCount);
+
+            if(GetDataRetVal == BT_OK)
             {
-                ManagerState = BT_ERROR;
+                ManagerState = BT_IDLE;
+                StartReceptionFlag = 0;
+				(*(ConfigPtr->BT_ReceptionCallBackPtr))();
             }
             else
             {
-                GetDataRetVal = BT_GetData(ReceivedDataPtr, ReceivedDataCount);
-
-                if(GetDataRetVal == BT_OK)
-                {
-                    ManagerState = BT_IDLE;
-                    StartReceptionFlag = 0;
-                    (*(ConfigPtr->BT_ReceptionCallBackPtr))();
-                }
-                else
-                {
-                    ManagerState = BT_RECEIVE;
-                    ErrorCounter++;
-                }
+                ManagerState = BT_RECEIVE;
             }
         }
         break;
 		
 		case BT_GET_CONNECTION_STATUS:
 		{
-            if(ErrorCounter > BT_TimeOut)
+			ConnectionStatusRetVal = BT_GetConnectionStatus();
+			
+			if(ConnectionStatusRetVal == BT_OK)
             {
-                ManagerState = BT_ERROR;
+                ManagerState = BT_IDLE;
+                GetConnectionStatusFlag = 0;
+				/*This indicates that the Bluetooth module is connected*/
+				(*(ConfigPtr->BT_ConnectionStatusCallBackPtr))((uint8_t)1);
             }
+			else if(ConnectionStatusRetVal == BT_NOK)
+			{
+				ManagerState = BT_IDLE;
+                GetConnectionStatusFlag = 0;
+				/*This indicates that the Bluetooth module is not connected*/
+				(*(ConfigPtr->BT_ConnectionStatusCallBackPtr))((uint8_t)0);
+			}
             else
-            {            
-                ConnectionStatusRetVal = BT_GetConnectionStatus();
-                
-                if(ConnectionStatusRetVal == BT_OK)
-                {
-                    ManagerState = BT_IDLE;
-                    GetConnectionStatusFlag = 0;
-                    /*This indicates that the Bluetooth module is connected*/
-                    (*(ConfigPtr->BT_ConnectionStatusCallBackPtr))((uint8_t)1);
-                }
-                else if(ConnectionStatusRetVal == BT_NOK)
-                {
-                    ManagerState = BT_IDLE;
-                    GetConnectionStatusFlag = 0;
-                    /*This indicates that the Bluetooth module is not connected*/
-                    (*(ConfigPtr->BT_ConnectionStatusCallBackPtr))((uint8_t)0);
-                }
-                else
-                {
-                    ManagerState = BT_GET_CONNECTION_STATUS;
-                    ErrorCounter++;
-                }
+            {
+                ManagerState = BT_GET_CONNECTION_STATUS;
             }
 		}
 		break;
 
         case BT_KILL_CONNECTION:
         {
-            if(ErrorCounter > BT_TimeOut)
+            KillConnectionRetVal = BT_StopCommunication();
+
+            if(KillConnectionRetVal == BT_OK)
             {
-                ManagerState = BT_ERROR;
+                ManagerState = BT_IDLE;
+                KillConnectionStatusFlag = 0;
+				/*This indicates that the Bluetooth module is not connected*/
+				(*(ConfigPtr->BT_KillConnectionStatusCallBackPtr))();
             }
             else
             {
-                KillConnectionRetVal = BT_StopCommunication();
-
-                if(KillConnectionRetVal == BT_OK)
-                {
-                    ManagerState = BT_IDLE;
-                    KillConnectionStatusFlag = 0;
-                    /*This indicates that the Bluetooth module is not connected*/
-                    (*(ConfigPtr->BT_KillConnectionStatusCallBackPtr))();
-                }
-                else
-                {
-                    ManagerState = BT_KILL_CONNECTION;
-                    ErrorCounter++;
-                }
+                ManagerState = BT_KILL_CONNECTION;
             }
         }
         break;
 
-        case BT_ERROR:
-        {
-            ManagerState = BT_IDLE;
-            ErrorCounter = 0;
-            StartTransmissionFlag = 0;
-            StartReceptionFlag = 0;
-            GetConnectionStatusFlag = 0;
-            KillConnectionStatusFlag = 0;
-            (*(ConfigPtr->BT_ErrorCallBackPtr))((uint8_t)BT_ERROR_ID);
-        }
-        break;
     }
 }
 
