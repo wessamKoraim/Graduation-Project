@@ -48,8 +48,9 @@ NVM_CheckType NVM_Init(void);
 NVM_CheckType NVM_Write(uint8_t ConfigStructure_ID, uint8_t* DataPointer);
 NVM_CheckType NVM_Read(uint8_t ConfigStruct, uint8_t* DataPointer);
 void NVM_Manager(void);
+static void Concatenator(uint8_t GlobalConfigStructure_ID, uint8_t* OriginalArray);
 
-extern uint8_t I2C_InitFlag ;
+extern uint8_t I2C_InitFlag;
 extern NVM_ConfigType NVM_ConfigParam [NO_OF_NVM_USED];
 #endif
 

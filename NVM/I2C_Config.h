@@ -11,3 +11,4 @@
 #define I2C_USE_INT_TO_HANDLE         (0U)
 
 #endif /*end of I2C_CFG_H*/
+

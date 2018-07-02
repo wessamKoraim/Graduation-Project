@@ -7,9 +7,9 @@
  *                                                                                          *
  *        Description: This file contains the implementations of initialization of          *
  *                     I2C peripheral for single master and single slave and the            *
- *                     helper functions. This code is designed for single/multi byte        *
- *                     write/read                                                           *
- *            				                                                    *
+ *                     helper functions. This code is designed for single byte write        *
+ *                     or single byte read.                                                 *
+ *            												                                *
  *                                                                                          *
  *                                                                                          *
  ********************************************************************************************
@@ -49,11 +49,9 @@ I2C_CheckType I2C_Init(void)
                     )
                     {
                             
-                            I2C_RCC_APB1EN |= (((uint32_t)1)<<RCC_APB1ENR_I2CEN_POS(ConfigPtr->I2C_Peripheral_ID));
+                            GPIO_SetAlternFuntion(ConfigPtr->I2C_GPIO_Structure_ID ,AF_I2C1);
+							I2C_RCC_APB1EN |= (((uint32_t)1)<<RCC_APB1ENR_I2CEN_POS(ConfigPtr->I2C_Peripheral_ID));
                             I2C_CR1(ConfigPtr->I2C_Peripheral_ID)  &=~ (((uint16_t)ConfigPtr->I2C_PeripheralEnable)<<I2C_CR1_PE_POS);
-                                                                            
-                            GPIO_SetAlternFuntion(LoopIndex,AF_I2C1);
-                            GPIO_SetAlternFuntion(LoopIndex+1,AF_I2C1);
                                                                             
                             /*SET PERIPHERAL FREQUENCY*/
                             I2C_CR2(ConfigPtr->I2C_Peripheral_ID)         |= ((uint16_t)ConfigPtr->I2C_PeripheralFrequency);
@@ -66,7 +64,7 @@ I2C_CheckType I2C_Init(void)
                             /*Enable/Disable Peripheral*/
                             I2C_CR1(ConfigPtr->I2C_Peripheral_ID)         |= (((uint16_t)ConfigPtr->I2C_PeripheralEnable)<<I2C_CR1_PE_POS);
                             /*Enable/Disable Acknowledge*/        
-                            I2C_CR1(ConfigPtr->I2C_Peripheral_ID)         |= (((uint16_t)ConfigPtr->I2C_Acknowledge)<<I2C_CR1_ACK_POS);
+                            I2C_CR1(ConfigPtr->I2C_Peripheral_ID)         |= (((uint16_t)1)<<I2C_CR1_ACK_POS);
                             /*Enable/Disable I2C mode*/        
                             I2C_CR1(ConfigPtr->I2C_Peripheral_ID)         |= (((uint16_t)ConfigPtr->I2C_BusMode)<<I2C_CR1_SMBUS_POS);
                             /*Enable / Disbale General Call*/        

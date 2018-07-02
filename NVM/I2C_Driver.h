@@ -17,8 +17,6 @@
 
 #define MAX_SCL_FREQUENCY_SM		(100000U)
 #define MAX_SCL_FREQUENCY_FM		(400000U)
-#define WRITE 						(0U)
-#define READ						(1U)
 #define	I2C_DELAY_PARAMETER			(50U)
 
 typedef volatile uint32_t* const I2C_RegisterAddressType;
@@ -102,12 +100,12 @@ typedef volatile uint32_t* const I2C_RegisterAddressType;
 
 #define I2C_SR1_RXNE_POS         								  	(6U)                                         
 #define I2C_SR1_TXE_POS         								  	(7U)                                         
-#define I2C_SR1_SB_POS          								  	(0U)  //Start Bit Position in status register                                      
+#define I2C_SR1_SB_POS          								  	(0U)  
 #define I2C_CR1_POS_POS  											(11U)
 #define I2C_SR2_MSL_POS												(0U)
 #define I2C_CR1_START_POS  											(8U)                                         
 #define I2C_CR1_STOP_POS   											(9U)                                         
-#define I2C_CR1_ENGC_POS  											(6U)      //General Call Enable Bit position                                   									
+#define I2C_CR1_ENGC_POS  											(6U)  
 #define I2C_CR1_SMBUS_POS											(1U)                                         																							
 #define I2C_CR1_PE_POS  											(0U)                                         													
 #define I2C_CR2_ITERREN_POS       				 					(8U)                                         
@@ -139,6 +137,13 @@ typedef enum
 }I2C_CheckType;
 
 typedef enum
+{
+	I2C_1 = 1,
+	I2C_2 = 2,
+	I2C_3 = 3
+}Peripheral_ID;
+
+typedef enum
 {	
 	PERIPHERAL_DISABLE=0,
 	PERIPHERAL_ENABLE=1
@@ -161,13 +166,6 @@ typedef enum
 	DISABLE_GENERAL_CALL=0,
 	ENABLE_GENERAL_CALL=1
 }GeneralCall;
-
-
-typedef enum 
-{
-	DISABLE_ACK=0,
-	ENABLE_ACK=1
-}Acknowledge;
 
 typedef enum
 {
@@ -222,6 +220,8 @@ typedef enum
 	PERIPHERAL_CLOCK_50MHz=50
 }PeripheralFrequency;
 
+typedef void (*I2C_CallBackFunctionType)(void);
+
 /*
  ******************************************************************************
  *                                                                            *
@@ -232,34 +232,32 @@ typedef enum
  ******************************************************************************
  */
 
-typedef void (*I2C_CallBackFunctionType)(void);
-
 typedef struct
 {
+	uint8_t								I2C_GPIO_Structure_ID;
 	/*used to choose from I2Cx, x=1,2,3*/
-	uint8_t								I2C_Peripheral_ID;
+	Peripheral_ID						I2C_Peripheral_ID;
 	/*SCL operating frequency */
 	uint32_t							I2C_FrequencyOf_SCL;
 	/*I2C operating frequency */
-	PeripheralFrequency		I2C_PeripheralFrequency;
+	PeripheralFrequency					I2C_PeripheralFrequency;
 	/**/
-	PeripheralEnable			I2C_PeripheralEnable;
+	PeripheralEnable					I2C_PeripheralEnable;
 	/**/
 	SpeedMode							I2C_SpeedMode;
 	/**/
 	BusMode								I2C_BusMode;
 	/**/
-	GeneralCall						I2C_GeneralCall;
+	GeneralCall							I2C_GeneralCall;
 	/**/
-	Acknowledge						I2C_Acknowledge;
-	/**/
-	I2C_CallBackFunctionType	I2C_TransmissionDoneCallBack;
+	I2C_CallBackFunctionType			I2C_TransmissionDoneCallBack;
 
-	I2C_CallBackFunctionType	I2C_ReceptionDoneCallBack;
+	I2C_CallBackFunctionType			I2C_ReceptionDoneCallBack;
 	
 }I2C_ConfigType;
 
 extern const I2C_ConfigType I2C_ConfigParam[I2C_PERIPHERAL_NUMBER];
+extern uint8_t I2C_InitFlag;
 
 /*
  ******************************************************************************
@@ -296,19 +294,6 @@ void I2C_TurnOffPos(uint8_t Peripheral_ID);
 void I2C_TurnOnPos(uint8_t Peripheral_ID);
 
 I2C_CheckType I2C_Get_BTF_Status(uint8_t Peripheral_ID);
-
-
-/*
- ******************************************************************************
- *                                                                            *
- *                                                                            *
- *            				Call Back Function					              *
- *                                                                            *
- *                                                                            *
- ******************************************************************************
- */
-
-extern uint8_t I2C_InitFlag;
 
 #endif /*end of I2C_DRIVER_H*/
 

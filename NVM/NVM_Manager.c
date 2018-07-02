@@ -139,7 +139,8 @@ void NVM_Manager(void)
 
         case NVM_WRITE:
         {
-            I2C_RequestWrite(ConfigPtr->NVM_SlaveAddress,GlobalDataPointer,ConfigPtr->NVM_NoOfBytes);
+            Concatenator(GlobalConfigStructure_ID, GlobalDataPointer);
+            I2C_RequestWrite(ConfigPtr->NVM_SlaveAddress,GlobalDataPointer,((ConfigPtr->NVM_NoOfBytes)+1));
             ManagerState = NVM_WAIT;
         }
         break;
@@ -222,4 +223,17 @@ void NVM_Manager(void)
         }
         break;
     }
+}
+
+
+static void Concatenator(uint8_t GlobalConfigStructure_ID, uint8_t* OriginalArray)
+{
+    const NVM_ConfigType* ConfigPtr = &NVM_ConfigParam[GlobalConfigStructure_ID];
+    uint8_t Counter;
+
+    for(Counter = ((ConfigPtr->NVM_NoOfBytes)); Counter > 0 ; Counter--)
+    {
+        OriginalArray[Counter] = OriginalArray[Counter-1];
+    }
+    OriginalArray[0] = (ConfigPtr->NVM_LocationAddress);
 }

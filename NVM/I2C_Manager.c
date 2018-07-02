@@ -295,3 +295,7 @@ void I2C_Manager(void)
         break;
     }
 }
+
+
+
+
