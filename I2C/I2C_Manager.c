@@ -238,7 +238,7 @@ void I2C_Manager(void)
                     {
                         I2C_ByteCount--;
                         I2C_DataPointer++;
-                       ManagerState = I2C_GET_MULTI_BYTE_STATUS; 
+						ManagerState = I2C_GET_MULTI_BYTE_STATUS; 
                     }
                 }
                 break;
@@ -295,3 +295,7 @@ void I2C_Manager(void)
         break;
     }
 }
+
+
+
+

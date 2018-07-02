@@ -36,7 +36,7 @@ void vSysTick_Init (void)
 	// configure the time between two interrupts to 1 ms
 	// SysTick_Config return
 		// 0 to indicate that Function succeeded
-		// 1 to indicate that Function faild
+		// 1 to indicate that Function failed
 	// so we halt till SysTick_Config return 0 to indicate sucessful initialization
 	while (SysTick_Config(SystemCoreClock / 1000) != 0);
 }

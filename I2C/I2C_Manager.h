@@ -36,3 +36,9 @@ void I2C_RequestWrite(uint8_t SlaveAddress, uint8_t* DataPointer, uint8_t NumOfB
 void I2C_RequestRead(uint8_t SlaveAddress, uint8_t* DataPointer, uint8_t NumOfBytes);
 
 #endif
+
+
+
+
+
+
